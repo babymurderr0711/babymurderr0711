@@ -1,6 +1,7 @@
 package com.giwc.app
 
 import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -244,14 +245,14 @@ private fun pity(wishes: List<Wish>, types: Set<String>): Int? {
     return if (lastFive < 0) pool.size else pool.size - lastFive - 1
 }
 private fun bannerName(type: String) = when(type) { "301", "400" -> "Character Event"; "302" -> "Weapon Event"; "200" -> "Standard"; "500" -> "Chronicled"; "100" -> "Beginner"; else -> "Other" }
-private fun loadWishes(context: Context): List<Wish> = runCatching {
-    val arr = JSONArray(context.getSharedPreferences("giwc_local", Context.MODE_PRIVATE).getString("wishes", "[]"))
+private fun loadWishes(prefs: SharedPreferences): List<Wish> = runCatching {
+    val arr = JSONArray(prefs.getString("wishes", "[]"))
     (0 until arr.length()).map { i -> arr.getJSONObject(i).toWish() }
 }.getOrDefault(emptyList())
-private fun saveWishes(context: Context, wishes: List<Wish>) {
+private fun saveWishes(prefs: SharedPreferences, wishes: List<Wish>) {
     val arr = JSONArray()
     wishes.forEach { w -> arr.put(JSONObject().put("id", w.id).put("name", w.name).put("type", w.type).put("rarity", w.rarity).put("time", w.time)) }
-    context.getSharedPreferences("giwc_local", Context.MODE_PRIVATE).edit().putString("wishes", arr.toString()).apply()
+    prefs.edit().putString("wishes", arr.toString()).apply()
 }
 private fun JSONObject.toWish() = Wish(optString("id"), optString("name"), optString("type"), optInt("rarity"), optString("time"))
 private fun parseUigf(root: JSONObject): List<Wish> {
